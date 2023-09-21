@@ -9,6 +9,7 @@ from xml.dom.minidom import parse, parseString
 from core.Util import *
 from controller.RouteController import *
 from controller.DijkstraController import DijkstraPolicy
+from controller.QLearningController import QLearningPolicy
 from core.target_vehicles_generation_protocols import *
 
 if 'SUMO_HOME' in os.environ:
@@ -51,7 +52,8 @@ def get_controlled_vehicles(route_filename, connection_info, \
 
 def test_dijkstra_policy(vehicles):
     print("Testing Dijkstra's Algorithm Route Controller")
-    scheduler = DijkstraPolicy(init_connection_info)
+    #scheduler = DijkstraPolicy(init_connection_info)
+    scheduler = QLearningPolicy(vehicles, connection_info, './core/rl-high-all-fixed-late.h5')
     run_simulation(scheduler, vehicles)
 
 

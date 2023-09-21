@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- generated on 2022-05-31 15:03:50.862111 by $Id$ v1_8_0+0044-4820708f3d
+
+<!-- generated on 2023-06-16 15:14:36.626739 by randomTrips.py v1_17_0+0000-737931d58da
   options: -n ./configurations/simple_grid1.net.xml -e 50 -p 0.5 -r ./configurations/str_sumo.rou.xml
 -->
+
 <routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
     <trip id="0" depart="0.00" from="gneE13" to="-gneE10"/>
     <trip id="1" depart="0.50" from="-gneE20" to="-gneE18"/>

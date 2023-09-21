@@ -125,7 +125,9 @@ class StrSumo:
                             .format(vehicle_id, arrived_at_destination, time_span, miss))
                         #if not arrived_at_destination:
                             #print("{} - {}".format(self.controlled_vehicles[vehicle_id].local_destination, self.controlled_vehicles[vehicle_id].destination))
-
+                #  for x  in self.edge_list:
+                        #44884008#2
+                        #traci.getLastStepVehicleNumber(x)
                 traci.simulationStep()
                 step += 1
 
