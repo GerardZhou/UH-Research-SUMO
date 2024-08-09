@@ -9,7 +9,8 @@ from xml.dom.minidom import parse, parseString
 from core.Util import *
 from controller.RouteController import *
 from controller.DijkstraController import DijkstraPolicy
-from controller.QLearningController import QLearningPolicy
+from controller.RouteController import RandomPolicy
+
 from core.target_vehicles_generation_protocols import *
 
 if 'SUMO_HOME' in os.environ:
@@ -20,12 +21,12 @@ else:
 
 from sumolib import checkBinary
 import traci
+import copy
 
 
 # use vehicle generation protocols to generate vehicle list
 def get_controlled_vehicles(route_filename, connection_info, \
     num_controlled_vehicles=10, num_uncontrolled_vehicles=20, pattern = 3):
-    # testing commit
     '''
     :param @route_filename <str>: the name of the route file to generate
     :param @connection_info <object>: an object that includes the map inforamtion
@@ -53,10 +54,13 @@ def get_controlled_vehicles(route_filename, connection_info, \
 
 def test_dijkstra_policy(vehicles):
     print("Testing Dijkstra's Algorithm Route Controller")
-    #scheduler = DijkstraPolicy(init_connection_info)
-    scheduler = QLearningPolicy(vehicles, connection_info, './core/rl-high-all-fixed-late.h5')
+    scheduler = DijkstraPolicy(init_connection_info)
     run_simulation(scheduler, vehicles)
-
+    
+def test_random_policy(vehicles):
+    print("Testing Random's Algorithm Route Controller")
+    scheduler = RandomPolicy(init_connection_info)
+    run_simulation(scheduler, vehicles)
 
 def run_simulation(scheduler, vehicles):
 
@@ -92,4 +96,5 @@ if __name__ == "__main__":
     for vid, v in vehicles.items():
         print("id: {}, destination: {}, start time:{}, deadline: {};".format(vid, \
             v.destination, v.start_time, v.deadline))
-    test_dijkstra_policy(vehicles)
+    #test_dijkstra_policy(vehicles)
+    test_random_policy(vehicles)
