@@ -100,12 +100,19 @@ class RandomPolicy(RouteController):
 
     def heuristic(self, current_edge, destination_edge):
         """
-        Heuristic function to estimate the distance from the current edge to the destination.
-        Uses Euclidean distance between the centers of the edges.
+        Heuristic function to estimate the distance from the current edge to the destination using the edge lengths.
+        Uses Euclidean distance between the edge lengths of the current and destination node.
+
+        Args: 
+            current_edge: a node in the graph
+            destination_edge: the destination of the current_edge node
+
+        Returns:
+            float: The Euclidean distance between the lengths of the current edge and the destination edge.
         """
-        current_center = self.connection_info.edge_length_dict[current_edge]
-        destination_center = self.connection_info.edge_length_dict[destination_edge]
-        return np.linalg.norm(np.array(current_center) - np.array(destination_center))
+        curr = self.connection_info.edge_length_dict[current_edge]
+        dest = self.connection_info.edge_length_dict[destination_edge]
+        return np.linalg.norm(np.array(curr) - np.array(dest))
 
     def make_decisions(self, vehicles, connection_info):
         """

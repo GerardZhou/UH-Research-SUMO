@@ -21,7 +21,6 @@ else:
 
 from sumolib import checkBinary
 import traci
-import copy
 
 
 # use vehicle generation protocols to generate vehicle list
@@ -68,33 +67,39 @@ def run_simulation(scheduler, vehicles):
 
     traci.start([sumo_binary, "-c", "./configurations/myconfig.sumocfg", \
                  "--tripinfo-output", "./configurations/trips.trips.xml", \
-                 "--fcd-output", "./configurations/testTrace.xml","--quit-on-end"])
+                 "--fcd-output", "./configurations/testTrace.xml", "--quit-on-end"])
 
     total_time, end_number, deadlines_missed = simulation.run()
     print("Average timespan: {}, total vehicle number: {}".format(str(total_time/end_number),\
         str(end_number)))
     print(str(deadlines_missed) + ' deadlines missed.')
 
+    # Properly close the SUMO simulation before starting another one
+    traci.close()
+
 if __name__ == "__main__":
     sumo_binary = checkBinary('sumo-gui')
-    # sumo_binary = checkBinary('sumo')#use this line if you do not want the UI of SUMO
+    # sumo_binary = checkBinary('sumo') # use this line if you do not want the UI of SUMO
 
-    # parse config file for map file name
+    # Parse config file for map file name
     dom = parse("./configurations/myconfig.sumocfg")
 
     net_file_node = dom.getElementsByTagName('net-file')
     net_file_attr = net_file_node[0].attributes
 
     net_file = net_file_attr['value'].nodeValue
-    init_connection_info = ConnectionInfo("./configurations/"+net_file)
+    init_connection_info = ConnectionInfo("./configurations/" + net_file)
 
     route_file_node = dom.getElementsByTagName('route-files')
     route_file_attr = route_file_node[0].attributes
-    route_file = "./configurations/"+route_file_attr['value'].nodeValue
+    route_file = "./configurations/" + route_file_attr['value'].nodeValue
     vehicles = get_controlled_vehicles(route_file, init_connection_info, 10, 50)
-    #print the controlled vehicles generated
+
+    # Print the controlled vehicles generated
     for vid, v in vehicles.items():
         print("id: {}, destination: {}, start time:{}, deadline: {};".format(vid, \
             v.destination, v.start_time, v.deadline))
-    # test_dijkstra_policy(vehicles)
+
+    test_dijkstra_policy(vehicles)
+
     test_random_policy(vehicles)
