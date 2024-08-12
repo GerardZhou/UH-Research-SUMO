@@ -10,6 +10,10 @@ else:
     sys.exit("No environment variable SUMO_HOME!")
 import traci
 import sumolib
+from core.Util import ConnectionInfo, Vehicle
+import numpy as np
+import math
+import copy
 
 STRAIGHT = "s"
 TURN_AROUND = "t"
@@ -94,6 +98,15 @@ class RandomPolicy(RouteController):
     def __init__(self, connection_info):
         super().__init__(connection_info)
 
+    def heuristic(self, current_edge, destination_edge):
+        """
+        Heuristic function to estimate the distance from the current edge to the destination.
+        Uses Euclidean distance between the centers of the edges.
+        """
+        current_center = self.connection_info.edge_length_dict[current_edge]
+        destination_center = self.connection_info.edge_length_dict[destination_edge]
+        return np.linalg.norm(np.array(current_center) - np.array(destination_center))
+
     def make_decisions(self, vehicles, connection_info):
         """
         A custom scheduling algorithm can be written in between the 'Your algo...' comments.
@@ -112,39 +125,51 @@ class RandomPolicy(RouteController):
         :param connection_info: object containing network information
         :return: local_targets: {vehicle_id, target_edge}, where target_edge is a local target to send to TRACI
         """
-
         local_targets = {}
         for vehicle in vehicles:
-            start_edge = vehicle.current_edge
-
             '''
             Your algo starts here
             '''
             decision_list = []
+            unvisited = {edge: (1000000000, 1000000000) for edge in self.connection_info.edge_list} 
+            # unvisited[edge] = (g_score, f_score)
+            visited = {}
+            current_edge = vehicle.current_edge
 
-            i = 0
-            while i < 10:  # choose the number of decisions to make in advanced; depends on the algorithm and network
-                choice = self.direction_choices[random.randint(0, 5)]  # 6 choices available in total
+            g_score = self.connection_info.edge_length_dict[current_edge]
+            f_score = g_score + self.heuristic(current_edge, vehicle.destination)
+            unvisited[current_edge] = (g_score, f_score)
 
-                # dead end
-                if len(self.connection_info.outgoing_edges_dict[start_edge].keys()) == 0:
+            path_lists = {edge: [] for edge in self.connection_info.edge_list} 
+
+            while True:
+                if current_edge not in self.connection_info.outgoing_edges_dict.keys():
+                    continue
+                for direction, outgoing_edge in self.connection_info.outgoing_edges_dict[current_edge].items():
+                    if outgoing_edge not in unvisited:
+                        continue
+                    edge_length = self.connection_info.edge_length_dict[outgoing_edge]
+                    tentative_g_score = g_score + edge_length
+                    tentative_f_score = tentative_g_score + self.heuristic(outgoing_edge, vehicle.destination)
+                    if tentative_f_score < unvisited[outgoing_edge][1]:  # Compare with f_score
+                        unvisited[outgoing_edge] = (tentative_g_score, tentative_f_score)
+                        current_path = copy.deepcopy(path_lists[current_edge])
+                        current_path.append(direction)
+                        path_lists[outgoing_edge] = copy.deepcopy(current_path)
+
+                visited[current_edge] = unvisited[current_edge]
+                del unvisited[current_edge]
+                if not unvisited:
                     break
+                if current_edge == vehicle.destination:
+                    break
+                possible_edges = [edge for edge in unvisited.items() if edge[1][1]]
+                current_edge, (g_score, f_score) = sorted(possible_edges, key=lambda x: x[1][1])[0]
 
-                # make sure to check if it's a valid edge
-                if choice in self.connection_info.outgoing_edges_dict[start_edge].keys():
-                    decision_list.append(choice)
-                    start_edge = self.connection_info.outgoing_edges_dict[start_edge][choice]
-
-                    if i > 0:
-                        if decision_list[i-1] == decision_list[i] and decision_list[i] == 't':
-                            # stuck in a turnaround loop, let TRACI remove vehicle
-                            break
-
-                    i += 1
-
+            for direction in path_lists[vehicle.destination]:
+                decision_list.append(direction)
             '''
             Your algo ends here
             '''
             local_targets[vehicle.vehicle_id] = self.compute_local_target(decision_list, vehicle)
-
         return local_targets

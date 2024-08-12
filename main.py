@@ -96,5 +96,5 @@ if __name__ == "__main__":
     for vid, v in vehicles.items():
         print("id: {}, destination: {}, start time:{}, deadline: {};".format(vid, \
             v.destination, v.start_time, v.deadline))
-    #test_dijkstra_policy(vehicles)
+    # test_dijkstra_policy(vehicles)
     test_random_policy(vehicles)
